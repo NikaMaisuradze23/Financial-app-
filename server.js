@@ -1,29 +1,43 @@
 const express = require("express")
 const app = express()
 const bcrypt = require("bcrypt") 
-const initializePassport = require("./passport-config")
+const mongoose = require("mongoose")
+const bodyParser = require("body-parser")
 
-const users = []
 
-app.use(express.urlencoded({extended: false}))
+app.use(bodyParser.json())
+app.use(express.static("public"))
+app.use(bodyParser.urlencoded({
+    extended: true
+}))
+
+// mongoose.connect("mongod://Localhost:27017/mydb")
+// const db = mongoose.connect
+// db.on("error", ()=>console.log("Error conection Database"))
+// db.once('open', ()=>console.log("conection Database sucsesful"))
+
 
 app.post("/register", async (req, res) => {
-    try{
-        const hashedPassword = await bcrypt.hash(req.body.password, 10)
-        users.push({
-            id: Date.now().toString(),
-            name: req.body.name,
-            email: req.body.email,
-            password: hashedPassword,
+        const hashedPassword = await bcrypt.hash(req.body.password, 10)     
+        const id = Date.now().toString()
+        const name =  req.body.name
+        const email = req.body.email
+
+        const data = {
+            "id":id,
+            "name": name,
+            "email": email,
+            "password": hashedPassword 
+        }
+            
+        db.collection('users').insertOne(data,(err,collection) =>{
+            if(err){
+                throw err;
+            }
+            console.log("Record instert Succssfuly")
         })
-        console.log(users)
-        res.redirect("/login")
 
-    } catch(e) {
-        console.log(e)
-        res.redirect("/register")
-    }
-
+        return res.redirect('/login')
 
 })
 
